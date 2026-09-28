@@ -1,0 +1,3448 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>ZOD Pay</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Arial,sans-serif;
+}
+
+:root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#111827;
+    --muted:#7b8494;
+    --border:#e9edf3;
+    --primary:#111827;
+    --green:#18a66a;
+    --green-dark:#087443;
+    --green-light:#e8f8f0;
+    --red:#e55353;
+    --red-light:#fff0f0;
+    --shadow:0 10px 30px rgba(17,24,39,.07);
+    --radius:22px;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+button,
+input,
+select{
+    font:inherit;
+}
+
+button{
+    border:0;
+    cursor:pointer;
+}
+
+.app{
+    min-height:100vh;
+    padding-bottom:90px;
+}
+
+.header{
+    padding:22px 18px 12px;
+    max-width:720px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+
+.brand-logo{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    background:#111827;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:900;
+    box-shadow:0 7px 18px rgba(17,24,39,.16);
+}
+
+.brand-text strong{
+    display:block;
+    font-size:18px;
+    letter-spacing:-.4px;
+}
+
+.brand-text span{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:2px;
+}
+
+.header-actions{
+    display:flex;
+    gap:9px;
+}
+
+.icon-btn{
+    width:42px;
+    height:42px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    font-size:18px;
+    box-shadow:0 5px 15px rgba(17,24,39,.04);
+}
+
+.notification-badge{
+    position:absolute;
+    top:-3px;
+    right:-3px;
+    min-width:17px;
+    height:17px;
+    padding:0 4px;
+    border-radius:20px;
+    background:#e55353;
+    color:white;
+    font-size:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+
+.container{
+    width:100%;
+    max-width:720px;
+    margin:auto;
+    padding:10px 16px 30px;
+}
+
+/* WELCOME */
+
+.welcome{
+    margin:5px 2px 18px;
+}
+
+.welcome small{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.welcome h1{
+    font-size:26px;
+    letter-spacing:-1px;
+    margin-top:4px;
+}
+
+/* BALANCE */
+
+.balance-card{
+    position:relative;
+    overflow:hidden;
+    border-radius:28px;
+    padding:25px 22px 22px;
+    color:white;
+    background:
+        radial-gradient(circle at 90% 10%,rgba(255,255,255,.16),transparent 27%),
+        radial-gradient(circle at 0% 100%,rgba(24,166,106,.28),transparent 34%),
+        linear-gradient(135deg,#111827,#18243a 55%,#0b1020);
+    box-shadow:0 18px 40px rgba(17,24,39,.20);
+    margin-bottom:18px;
+}
+
+.balance-card:before{
+    content:"";
+    position:absolute;
+    width:180px;
+    height:180px;
+    right:-90px;
+    bottom:-100px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:50%;
+}
+
+.balance-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:relative;
+    z-index:1;
+}
+
+.balance-label{
+    font-size:12px;
+    color:rgba(255,255,255,.66);
+}
+
+.balance-account{
+    font-size:11px;
+    color:rgba(255,255,255,.62);
+    margin-top:5px;
+}
+
+.balance-eye{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:rgba(255,255,255,.10);
+    color:white;
+}
+
+.balance-amount{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:-1.5px;
+    margin:19px 0 20px;
+    position:relative;
+    z-index:1;
+}
+
+.balance-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:relative;
+    z-index:1;
+}
+
+.status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:#b9f4d4;
+    background:rgba(24,166,106,.15);
+    padding:7px 10px;
+    border-radius:20px;
+}
+
+.status-dot{
+    width:6px;
+    height:6px;
+    background:#4ce39b;
+    border-radius:50%;
+}
+
+.balance-account-number{
+    font-size:11px;
+    color:rgba(255,255,255,.65);
+}
+
+/* QUICK ACTIONS */
+
+.section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:24px 3px 12px;
+}
+
+.section-head h2{
+    font-size:16px;
+    letter-spacing:-.3px;
+}
+
+.section-head button{
+    background:none;
+    color:var(--green-dark);
+    font-size:12px;
+    font-weight:700;
+}
+
+.quick-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.quick-action{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:19px;
+    padding:14px 6px 13px;
+    min-height:93px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    box-shadow:0 6px 20px rgba(17,24,39,.035);
+    transition:.18s;
+}
+
+.quick-action:active{
+    transform:scale(.96);
+}
+
+.quick-icon{
+    width:39px;
+    height:39px;
+    border-radius:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+}
+
+.quick-action:nth-child(1) .quick-icon{
+    background:#e8f8f0;
+    color:#0b8a52;
+}
+
+.quick-action:nth-child(2) .quick-icon{
+    background:#edf4ff;
+    color:#3973d7;
+}
+
+.quick-action:nth-child(3) .quick-icon{
+    background:#fff3df;
+    color:#d78a18;
+}
+
+.quick-action:nth-child(4) .quick-icon{
+    background:#f2ecff;
+    color:#7953ce;
+}
+
+.quick-action span{
+    font-size:11px;
+    font-weight:700;
+    color:#333b48;
+}
+
+/* BILLS */
+
+.bill-scroll{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.bill-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:15px 10px;
+    min-height:82px;
+    box-shadow:0 5px 18px rgba(17,24,39,.03);
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.bill-icon{
+    width:37px;
+    height:37px;
+    border-radius:12px;
+    background:#f1f4f8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:none;
+}
+
+.bill-card strong{
+    font-size:11px;
+    display:block;
+}
+
+.bill-card small{
+    color:var(--muted);
+    font-size:9px;
+    display:block;
+    margin-top:3px;
+}
+
+/* QUICK ACCESS */
+
+.access-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.access-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:19px;
+    padding:17px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 5px 18px rgba(17,24,39,.035);
+}
+
+.access-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    background:#f0f3f7;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+}
+
+.access-card strong{
+    display:block;
+    font-size:12px;
+}
+
+.access-card small{
+    color:var(--muted);
+    display:block;
+    font-size:10px;
+    margin-top:3px;
+}
+
+/* RECENT */
+
+.recent-card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 5px 18px rgba(17,24,39,.035);
+}
+
+.transaction-row{
+    padding:14px 15px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid #f0f2f5;
+}
+
+.transaction-row:last-child{
+    border-bottom:0;
+}
+
+.tx-icon{
+    width:41px;
+    height:41px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f1f4f7;
+}
+
+.tx-info{
+    flex:1;
+    min-width:0;
+}
+
+.tx-info strong{
+    display:block;
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.tx-info small{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    margin-top:3px;
+}
+
+.tx-amount{
+    font-size:12px;
+    font-weight:800;
+}
+
+.credit{
+    color:var(--green-dark);
+}
+
+.debit{
+    color:var(--red);
+}
+
+.empty-state{
+    text-align:center;
+    padding:25px 15px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+    position:fixed;
+    left:50%;
+    bottom:12px;
+    transform:translateX(-50%);
+    width:calc(100% - 24px);
+    max-width:690px;
+    height:68px;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(18px);
+    border:1px solid #e4e8ee;
+    border-radius:24px;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    padding:6px;
+    z-index:50;
+    box-shadow:0 15px 35px rgba(17,24,39,.13);
+}
+
+.nav-item{
+    background:transparent;
+    color:#89919f;
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    font-size:9px;
+    font-weight:700;
+}
+
+.nav-item span:first-child{
+    font-size:18px;
+}
+
+.nav-item.active{
+    color:#111827;
+    background:#f0f3f6;
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(10,15,25,.54);
+    backdrop-filter:blur(5px);
+    z-index:100;
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    padding:12px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:100%;
+    max-width:600px;
+    max-height:92vh;
+    overflow:auto;
+    background:white;
+    border-radius:28px;
+    padding:22px;
+    box-shadow:0 -10px 45px rgba(0,0,0,.2);
+    animation:slideUp .2s ease;
+}
+
+@keyframes slideUp{
+    from{transform:translateY(25px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.modal-header h3{
+    font-size:18px;
+}
+
+.close-btn{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    background:#f2f4f7;
+    font-size:18px;
+}
+
+.form-group{
+    margin-bottom:14px;
+}
+
+.form-group label{
+    display:block;
+    font-size:11px;
+    color:#626b79;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.input{
+    width:100%;
+    padding:14px;
+    border:1px solid #e2e6ec;
+    background:#f9fafb;
+    border-radius:14px;
+    outline:none;
+    font-size:14px;
+}
+
+.input:focus{
+    border-color:#19a66a;
+    background:white;
+}
+
+.primary-btn{
+    width:100%;
+    padding:15px;
+    border-radius:15px;
+    background:#111827;
+    color:white;
+    font-weight:800;
+    margin-top:5px;
+}
+
+.green-btn{
+    background:#0b8a52;
+}
+
+.secondary-btn{
+    width:100%;
+    padding:14px;
+    border-radius:15px;
+    background:#eef2f5;
+    color:#202733;
+    font-weight:700;
+    margin-top:9px;
+}
+
+.danger-btn{
+    width:100%;
+    padding:14px;
+    border-radius:15px;
+    background:#fff0f0;
+    color:#d64040;
+    font-weight:800;
+    margin-top:9px;
+}
+
+.amount-input{
+    text-align:center;
+    font-size:27px;
+    font-weight:800;
+    padding:20px 12px;
+}
+
+.confirm-box{
+    text-align:center;
+    padding:10px 0;
+}
+
+.confirm-icon{
+    width:65px;
+    height:65px;
+    margin:0 auto 15px;
+    border-radius:22px;
+    background:#e8f8f0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+}
+
+.detail-row{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:12px 0;
+    border-bottom:1px solid #edf0f3;
+    font-size:12px;
+}
+
+.detail-row span:first-child{
+    color:var(--muted);
+}
+
+.pin-dots{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:20px 0;
+}
+
+.pin-dot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:#d9dee5;
+}
+
+.pin-dot.active{
+    background:#111827;
+}
+
+.pin-keypad{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin-top:12px;
+}
+
+.pin-key{
+    height:52px;
+    border-radius:15px;
+    background:#f2f4f7;
+    font-size:17px;
+    font-weight:800;
+}
+
+.notification-item{
+    padding:14px 0;
+    border-bottom:1px solid #edf0f3;
+}
+
+.notification-item strong{
+    font-size:12px;
+}
+
+.notification-item p{
+    color:#687181;
+    font-size:11px;
+    margin-top:4px;
+    line-height:1.5;
+}
+
+.notification-item small{
+    display:block;
+    color:#a0a7b2;
+    font-size:9px;
+    margin-top:6px;
+}
+
+.profile-card{
+    background:#f7f9fb;
+    border-radius:20px;
+    padding:18px;
+    margin-bottom:15px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.avatar{
+    width:54px;
+    height:54px;
+    border-radius:18px;
+    background:#111827;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    font-weight:800;
+}
+
+.profile-card strong{
+    font-size:15px;
+}
+
+.profile-card small{
+    color:var(--muted);
+    font-size:10px;
+    display:block;
+    margin-top:4px;
+}
+
+.security-option{
+    width:100%;
+    background:#f7f9fb;
+    border-radius:16px;
+    padding:15px;
+    margin-bottom:9px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    text-align:left;
+}
+
+.security-option div:first-child{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.security-option-icon{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.security-option strong{
+    display:block;
+    font-size:12px;
+}
+
+.security-option small{
+    color:var(--muted);
+    font-size:9px;
+}
+
+.receipt{
+    border:1px dashed #cdd3db;
+    border-radius:18px;
+    padding:17px;
+    background:#fafbfc;
+}
+
+.receipt-logo{
+    text-align:center;
+    font-size:20px;
+    font-weight:900;
+    margin-bottom:17px;
+}
+
+.success{
+    text-align:center;
+    color:#0b8a52;
+    font-weight:800;
+    font-size:12px;
+    margin-bottom:12px;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:430px){
+    .balance-amount{
+        font-size:31px;
+    }
+
+    .quick-grid{
+        gap:7px;
+    }
+
+    .quick-action{
+        min-height:88px;
+    }
+
+    .bill-scroll{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .access-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(min-width:700px){
+    .modal{
+        align-items:center;
+    }
+
+    .modal-box{
+        border-radius:28px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-logo">Z</div>
+            <div class="brand-text">
+                <strong>ZOD Pay</strong>
+                <span>Money made simple</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="icon-btn" id="notificationButton" type="button">
+                🔔
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </button>
+            <button class="icon-btn" id="profileHeaderButton" type="button">👤</button>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- WELCOME -->
+        <section class="welcome">
+            <small id="welcomeGreeting">Good morning</small>
+            <h1>Welcome, <span id="welcomeName">ZOD User</span></h1>
+        </section>
+
+        <!-- BALANCE -->
+        <section class="balance-card">
+
+            <div class="balance-top">
+                <div>
+                    <div class="balance-label">Available balance</div>
+                    <div class="balance-account">
+                        Account •••• <span id="accountShort">2026</span>
+                    </div>
+                </div>
+
+                <button class="balance-eye" id="toggleBalance" type="button">
+                    👁
+                </button>
+            </div>
+
+            <div class="balance-amount" id="balanceDisplay">
+                ₦733,800
+            </div>
+
+            <div class="balance-bottom">
+                <div class="status">
+                    <span class="status-dot"></span>
+                    ACTIVE
+                </div>
+
+                <div class="balance-account-number">
+                    ZOD Pay Wallet
+                </div>
+            </div>
+
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-head">
+            <h2>Quick actions</h2>
+        </div>
+
+        <section class="quick-grid">
+
+            <button class="quick-action" id="sendButton" type="button">
+                <div class="quick-icon">↗</div>
+                <span>Send</span>
+            </button>
+
+            <button class="quick-action" id="receiveButton" type="button">
+                <div class="quick-icon">↙</div>
+                <span>Receive</span>
+            </button>
+
+            <button class="quick-action" id="addMoneyButton" type="button">
+                <div class="quick-icon">＋</div>
+                <span>Add Money</span>
+            </button>
+
+            <button class="quick-action" id="withdrawButton" type="button">
+                <div class="quick-icon">⇩</div>
+                <span>Withdraw</span>
+            </button>
+
+        </section>
+
+        <!-- BILLS -->
+        <div class="section-head">
+            <h2>Pay bills</h2>
+            <button id="quickBillsButton" type="button">View all</button>
+        </div>
+
+        <section class="bill-scroll">
+
+            <button class="bill-card" data-bill="Airtime" type="button">
+                <div class="bill-icon">📱</div>
+                <div>
+                    <strong>Airtime</strong>
+                    <small>Recharge</small>
+                </div>
+            </button>
+
+            <button class="bill-card" data-bill="Data" type="button">
+                <div class="bill-icon">🌐</div>
+                <div>
+                    <strong>Data</strong>
+                    <small>Internet</small>
+                </div>
+            </button>
+
+            <button class="bill-card" data-bill="Electricity" type="button">
+                <div class="bill-icon">⚡</div>
+                <div>
+                    <strong>Electricity</strong>
+                    <small>Power</small>
+                </div>
+            </button>
+
+            <button class="bill-card" data-bill="Cable TV" type="button">
+                <div class="bill-icon">📺</div>
+                <div>
+                    <strong>Cable TV</strong>
+                    <small>Subscription</small>
+                </div>
+            </button>
+
+            <button class="bill-card" data-bill="Internet" type="button">
+                <div class="bill-icon">📡</div>
+                <div>
+                    <strong>Internet</strong>
+                    <small>Broadband</small>
+                </div>
+            </button>
+
+            <button class="bill-card" data-bill="Other Bills" type="button">
+                <div class="bill-icon">🧾</div>
+                <div>
+                    <strong>Other Bills</strong>
+                    <small>Payments</small>
+                </div>
+            </button>
+
+        </section>
+
+        <!-- QUICK ACCESS -->
+        <div class="section-head">
+            <h2>Quick access</h2>
+        </div>
+
+        <section class="access-grid">
+
+            <button class="access-card" id="quickHistoryButton" type="button">
+                <div class="access-icon">↔</div>
+                <div>
+                    <strong>Transactions</strong>
+                    <small>View your history</small>
+                </div>
+            </button>
+
+            <button class="access-card" id="quickProfileButton" type="button">
+                <div class="access-icon">👤</div>
+                <div>
+                    <strong>My Profile</strong>
+                    <small>Account information</small>
+                </div>
+            </button>
+
+            <button class="access-card" id="quickSecurityButton" type="button">
+                <div class="access-icon">🔐</div>
+                <div>
+                    <strong>Security</strong>
+                    <small>PIN & protection</small>
+                </div>
+            </button>
+
+            <button class="access-card" id="quickReceiveButton" type="button">
+                <div class="access-icon">₦</div>
+                <div>
+                    <strong>Receive Money</strong>
+                    <small>Get paid securely</small>
+                </div>
+            </button>
+
+        </section>
+
+        <!-- RECENT TRANSACTIONS -->
+        <div class="section-head">
+            <h2>Recent transactions</h2>
+            <button id="historyButton" type="button">See all</button>
+        </div>
+
+        <section class="recent-card" id="recentTransactions">
+            <div class="empty-state">
+                No recent transactions
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+
+        <button class="nav-item active" id="homeNav" type="button">
+            <span>⌂</span>
+            <span>Home</span>
+        </button>
+
+        <button class="nav-item" id="sendNav" type="button">
+            <span>↗</span>
+            <span>Send</span>
+        </button>
+
+        <button class="nav-item" id="receiveNav" type="button">
+            <span>↙</span>
+            <span>Receive</span>
+        </button>
+
+        <button class="nav-item" id="historyNav" type="button">
+            <span>↔</span>
+            <span>History</span>
+        </button>
+
+        <button class="nav-item" id="profileNav" type="button">
+            <span>👤</span>
+            <span>Profile</span>
+        </button>
+
+    </nav>
+
+</div>
+
+
+<!-- SEND MODAL -->
+<div class="modal" id="sendModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Send Money</h3>
+            <button class="close-btn" data-close="sendModal" type="button">×</button>
+        </div>
+
+        <div class="form-group">
+            <label>Recipient account number</label>
+            <input class="input" id="sendAccount" placeholder="Enter account number">
+        </div>
+
+        <div class="form-group">
+            <label>Amount</label>
+            <input class="input amount-input" id="sendAmount" type="number" min="1" placeholder="₦0">
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <input class="input" id="sendDescription" placeholder="What's this for?">
+        </div>
+
+        <button class="primary-btn green-btn" id="continueSendButton" type="button">
+            Continue
+        </button>
+
+    </div>
+</div>
+
+
+<!-- SEND CONFIRMATION -->
+<div class="modal" id="sendConfirmModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Confirm Transfer</h3>
+            <button class="close-btn" data-close="sendConfirmModal" type="button">×</button>
+        </div>
+
+        <div class="confirm-box">
+            <div class="confirm-icon">↗</div>
+            <div class="detail-row">
+                <span>Recipient</span>
+                <strong id="confirmAccount">—</strong>
+            </div>
+            <div class="detail-row">
+                <span>Amount</span>
+                <strong id="confirmAmount">₦0</strong>
+            </div>
+            <div class="detail-row">
+                <span>Description</span>
+                <strong id="confirmDescription">—</strong>
+            </div>
+        </div>
+
+        <button class="primary-btn green-btn" id="confirmSendButton" type="button">
+            Confirm & Continue
+        </button>
+
+    </div>
+</div>
+
+
+<!-- PIN MODAL -->
+<div class="modal" id="pinModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Enter PIN</h3>
+            <button class="close-btn" data-close="pinModal" type="button">×</button>
+        </div>
+
+        <div style="text-align:center">
+            <p style="font-size:12px;color:#7b8494">
+                Enter your 4-digit transaction PIN
+            </p>
+        </div>
+
+        <div class="pin-dots" id="pinDots">
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+            <span class="pin-dot"></span>
+        </div>
+
+        <input id="pinInput" type="password" maxlength="4"
+               inputmode="numeric"
+               style="position:absolute;opacity:0;pointer-events:none">
+
+        <div class="pin-keypad">
+            <button class="pin-key" data-pin="1" type="button">1</button>
+            <button class="pin-key" data-pin="2" type="button">2</button>
+            <button class="pin-key" data-pin="3" type="button">3</button>
+            <button class="pin-key" data-pin="4" type="button">4</button>
+            <button class="pin-key" data-pin="5" type="button">5</button>
+            <button class="pin-key" data-pin="6" type="button">6</button>
+            <button class="pin-key" data-pin="7" type="button">7</button>
+            <button class="pin-key" data-pin="8" type="button">8</button>
+            <button class="pin-key" data-pin="9" type="button">9</button>
+            <button class="pin-key" type="button" data-pin="clear">C</button>
+            <button class="pin-key" data-pin="0" type="button">0</button>
+            <button class="pin-key" type="button" data-pin="back">⌫</button>
+        </div>
+
+        <button class="primary-btn green-btn" id="submitPinButton" type="button">
+            Verify PIN
+        </button>
+
+    </div>
+</div>
+
+
+<!-- RECEIVE MODAL -->
+<div class="modal" id="receiveModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Receive Money</h3>
+            <button class="close-btn" data-close="receiveModal" type="button">×</button>
+        </div>
+
+        <div class="profile-card">
+            <div class="avatar" id="receiveAvatar">Z</div>
+            <div>
+                <strong id="receiveName">ZOD User</strong>
+                <small>My ZOD Pay account</small>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <span>Account number</span>
+            <strong id="receiveAccount">2026</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Status</span>
+            <strong style="color:#0b8a52">Active</strong>
+        </div>
+
+        <button class="primary-btn green-btn" id="copyAccountButton" type="button">
+            Copy Account Number
+        </button>
+
+    </div>
+</div>
+
+
+<!-- ADD MONEY -->
+<div class="modal" id="addMoneyModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Add Money</h3>
+            <button class="close-btn" data-close="addMoneyModal" type="button">×</button>
+        </div>
+
+        <div class="form-group">
+            <label>Amount</label>
+            <input class="input amount-input" id="addMoneyAmount"
+                   type="number" min="1" placeholder="₦0">
+        </div>
+
+        <button class="primary-btn green-btn" id="confirmAddMoneyButton" type="button">
+            Add Money
+        </button>
+
+    </div>
+</div>
+
+
+<!-- WITHDRAW -->
+<div class="modal" id="withdrawModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Withdraw Money</h3>
+            <button class="close-btn" data-close="withdrawModal" type="button">×</button>
+        </div>
+
+        <div class="form-group">
+            <label>Destination account</label>
+            <input class="input" id="withdrawAccount" placeholder="Bank account number">
+        </div>
+
+        <div class="form-group">
+            <label>Amount</label>
+            <input class="input amount-input" id="withdrawAmount"
+                   type="number" min="1" placeholder="₦0">
+        </div>
+
+        <button class="primary-btn" id="confirmWithdrawButton" type="button">
+            Withdraw
+        </button>
+
+    </div>
+</div>
+
+
+<!-- BILL MODAL -->
+<div class="modal" id="billModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3 id="billTitle">Pay Bill</h3>
+            <button class="close-btn" data-close="billModal" type="button">×</button>
+        </div>
+
+        <div class="form-group">
+            <label>Customer / phone number</label>
+            <input class="input" id="billCustomer" placeholder="Enter number">
+        </div>
+
+        <div class="form-group">
+            <label>Amount</label>
+            <input class="input amount-input" id="billAmount"
+                   type="number" min="1" placeholder="₦0">
+        </div>
+
+        <button class="primary-btn green-btn" id="payBillButton" type="button">
+            Pay Bill
+        </button>
+
+    </div>
+</div>
+
+
+<!-- HISTORY -->
+<div class="modal" id="historyModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Transaction History</h3>
+            <button class="close-btn" data-close="historyModal" type="button">×</button>
+        </div>
+
+        <div id="historyList">
+            <div class="empty-state">Loading transactions...</div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- TRANSACTION DETAILS -->
+<div class="modal" id="transactionDetailsModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Transaction Details</h3>
+            <button class="close-btn" data-close="transactionDetailsModal" type="button">×</button>
+        </div>
+
+        <div id="transactionDetails"></div>
+
+        <button class="primary-btn" id="viewReceiptButton" type="button">
+            View Receipt
+        </button>
+
+    </div>
+</div>
+
+
+<!-- RECEIPT -->
+<div class="modal" id="receiptModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Receipt</h3>
+            <button class="close-btn" data-close="receiptModal" type="button">×</button>
+        </div>
+
+        <div class="receipt" id="receiptContent">
+            Loading...
+        </div>
+
+        <button class="secondary-btn" id="closeReceiptButton" type="button">
+            Done
+        </button>
+
+    </div>
+</div>
+
+
+<!-- NOTIFICATIONS -->
+<div class="modal" id="notificationsModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Notifications</h3>
+            <button class="close-btn" data-close="notificationsModal" type="button">×</button>
+        </div>
+
+        <div id="notificationList">
+            <div class="empty-state">No notifications</div>
+        </div>
+
+        <button class="secondary-btn" id="clearNotificationsButton" type="button">
+            Clear All
+        </button>
+
+    </div>
+</div>
+
+
+<!-- PROFILE -->
+<div class="modal" id="profileModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Profile & Account</h3>
+            <button class="close-btn" data-close="profileModal" type="button">×</button>
+        </div>
+
+        <div class="profile-card">
+            <div class="avatar" id="profileAvatar">Z</div>
+            <div>
+                <strong id="profileName">ZOD User</strong>
+                <small id="profileEmail">Not connected</small>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <span>Full name</span>
+            <strong id="profileFullName">ZOD User</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Email</span>
+            <strong id="profileEmailDetail">—</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Phone</span>
+            <strong id="profilePhone">—</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Account number</span>
+            <strong id="profileAccount">2026</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Balance</span>
+            <strong id="profileBalance">₦733,800</strong>
+        </div>
+
+        <button class="primary-btn" id="profileSecurityButton" type="button">
+            Security & PIN
+        </button>
+
+        <button class="danger-btn" id="logoutButton" type="button">
+            Log Out
+        </button>
+
+    </div>
+</div>
+
+
+<!-- SECURITY -->
+<div class="modal" id="securityModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Security</h3>
+            <button class="close-btn" data-close="securityModal" type="button">×</button>
+        </div>
+
+        <button class="security-option" id="changePinButton" type="button">
+            <div>
+                <div class="security-option-icon">🔐</div>
+                <div>
+                    <strong>Change PIN</strong>
+                    <small>Update your transaction PIN</small>
+                </div>
+            </div>
+            <span>›</span>
+        </button>
+
+        <button class="security-option" id="setPinButton" type="button">
+            <div>
+                <div class="security-option-icon">🛡</div>
+                <div>
+                    <strong>Set Transaction PIN</strong>
+                    <small>Create a new 4-digit PIN</small>
+                </div>
+            </div>
+            <span>›</span>
+        </button>
+
+        <button class="security-option" id="securityLogoutButton" type="button">
+            <div>
+                <div class="security-option-icon">🚪</div>
+                <div>
+                    <strong>Log Out</strong>
+                    <small>Securely end this session</small>
+                </div>
+            </div>
+            <span>›</span>
+        </button>
+
+    </div>
+</div>
+
+
+<!-- PIN SETUP -->
+<div class="modal" id="setPinModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Set PIN</h3>
+            <button class="close-btn" data-close="setPinModal" type="button">×</button>
+        </div>
+
+        <div class="form-group">
+            <label>New 4-digit PIN</label>
+            <input class="input" id="newPin"
+                   type="password"
+                   maxlength="4"
+                   inputmode="numeric"
+                   placeholder="••••">
+        </div>
+
+        <div class="form-group">
+            <label>Confirm PIN</label>
+            <input class="input" id="confirmNewPin"
+                   type="password"
+                   maxlength="4"
+                   inputmode="numeric"
+                   placeholder="••••">
+        </div>
+
+        <button class="primary-btn green-btn" id="savePinButton" type="button">
+            Save PIN
+        </button>
+
+    </div>
+</div>
+
+
+<!-- LOGOUT -->
+<div class="modal" id="logoutModal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3>Log Out</h3>
+            <button class="close-btn" data-close="logoutModal" type="button">×</button>
+        </div>
+
+        <div class="confirm-box">
+            <div class="confirm-icon">🚪</div>
+            <p style="font-size:13px;color:#697282;line-height:1.6">
+                Are you sure you want to log out of ZOD Pay?
+            </p>
+        </div>
+
+        <button class="danger-btn" id="confirmLogoutButton" type="button">
+            Log Out
+        </button>
+
+        <button class="secondary-btn" data-close="logoutModal" type="button">
+            Cancel
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+/* =========================================================
+   ZOD PAY
+   CORE APPLICATION
+   ========================================================= */
+
+const SUPABASE_URL = "https://kkucomrnfqmouksqkxms.supabase.co";
+const SUPABASE_KEY = "sb_publishable_CO5gtcMTw1D3L3WIxHzAuA_gilrBOAZ";
+
+let zodSupabase = null;
+
+try{
+    if(window.supabase){
+        zodSupabase = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+        window.zodSupabase = zodSupabase;
+    }
+}catch(error){
+    console.error("Supabase initialization error:",error);
+}
+
+
+/* =========================================================
+   LOCAL STATE
+   ========================================================= */
+
+let balance = Number(localStorage.getItem("zodBalance")) || 733800;
+
+let userName =
+    localStorage.getItem("zodName") ||
+    "ZOD User";
+
+let accountNumber =
+    localStorage.getItem("zodAccount") ||
+    "2026";
+
+let balanceHidden =
+    localStorage.getItem("zodBalanceHidden") === "true";
+
+let notifications =
+    JSON.parse(localStorage.getItem("zodNotifications") || "[]");
+
+let localHistory =
+    JSON.parse(localStorage.getItem("zodHistory") || "[]");
+
+let currentTransaction = null;
+let currentBillType = "";
+let pendingSend = null;
+let pinAction = null;
+let pinValue = "";
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function $(id){
+    return document.getElementById(id);
+}
+
+function safeOn(id,event,handler){
+    const el = $(id);
+
+    if(!el){
+        return;
+    }
+
+    el.addEventListener(event,handler);
+}
+
+function money(amount){
+    const n = Number(amount) || 0;
+
+    return "₦" + n.toLocaleString("en-NG",{
+        minimumFractionDigits:0,
+        maximumFractionDigits:2
+    });
+}
+
+function escapeHTML(value){
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function saveLocalState(){
+    localStorage.setItem("zodBalance",String(balance));
+    localStorage.setItem("zodName",userName);
+    localStorage.setItem("zodAccount",accountNumber);
+    localStorage.setItem(
+        "zodNotifications",
+        JSON.stringify(notifications)
+    );
+    localStorage.setItem(
+        "zodHistory",
+        JSON.stringify(localHistory)
+    );
+}
+
+function nowText(){
+    return new Date().toLocaleString("en-NG",{
+        day:"2-digit",
+        month:"short",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+    });
+}
+
+function getGreeting(){
+    const hour = new Date().getHours();
+
+    if(hour < 12) return "Good morning";
+    if(hour < 17) return "Good afternoon";
+
+    return "Good evening";
+}
+
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+function openModal(id){
+    document.querySelectorAll(".modal").forEach(modal=>{
+        modal.classList.remove("show");
+    });
+
+    const modal = $(id);
+
+    if(modal){
+        modal.classList.add("show");
+    }
+}
+
+function closeModal(id){
+    const modal = $(id);
+
+    if(modal){
+        modal.classList.remove("show");
+    }
+}
+
+function closeAllModals(){
+    document.querySelectorAll(".modal").forEach(modal=>{
+        modal.classList.remove("show");
+    });
+}
+
+
+/* =========================================================
+   BALANCE
+   ========================================================= */
+
+function renderBalance(){
+
+    if($("balanceDisplay")){
+        $("balanceDisplay").textContent =
+            balanceHidden ? "₦ •••••••" : money(balance);
+    }
+
+    if($("profileBalance")){
+        $("profileBalance").textContent = money(balance);
+    }
+
+    if($("toggleBalance")){
+        $("toggleBalance").textContent =
+            balanceHidden ? "🙈" : "👁";
+    }
+}
+
+function toggleBalance(){
+
+    balanceHidden = !balanceHidden;
+
+    localStorage.setItem(
+        "zodBalanceHidden",
+        String(balanceHidden)
+    );
+
+    renderBalance();
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+function renderProfile(){
+
+    const firstLetter =
+        userName.trim().charAt(0).toUpperCase() || "Z";
+
+    if($("welcomeGreeting")){
+        $("welcomeGreeting").textContent = getGreeting();
+    }
+
+    if($("welcomeName")){
+        $("welcomeName").textContent = userName;
+    }
+
+    if($("profileName")){
+        $("profileName").textContent = userName;
+    }
+
+    if($("profileFullName")){
+        $("profileFullName").textContent = userName;
+    }
+
+    if($("profileAvatar")){
+        $("profileAvatar").textContent = firstLetter;
+    }
+
+    if($("receiveAvatar")){
+        $("receiveAvatar").textContent = firstLetter;
+    }
+
+    if($("receiveName")){
+        $("receiveName").textContent = userName;
+    }
+
+    if($("accountShort")){
+        $("accountShort").textContent = accountNumber.slice(-4);
+    }
+
+    if($("receiveAccount")){
+        $("receiveAccount").textContent = accountNumber;
+    }
+
+    if($("profileAccount")){
+        $("profileAccount").textContent = accountNumber;
+    }
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+function addNotification(title,description){
+
+    notifications.unshift({
+        id:Date.now(),
+        title:title,
+        description:description,
+        time:nowText()
+    });
+
+    if(notifications.length > 30){
+        notifications =
+            notifications.slice(0,30);
+    }
+
+    saveLocalState();
+    renderNotifications();
+}
+
+function renderNotifications(){
+
+    const badge = $("notificationBadge");
+
+    if(badge){
+        badge.textContent = notifications.length;
+
+        badge.style.display =
+            notifications.length
+                ? "flex"
+                : "none";
+    }
+
+    const list = $("notificationList");
+
+    if(!list){
+        return;
+    }
+
+    if(!notifications.length){
+        list.innerHTML =
+            '<div class="empty-state">No notifications</div>';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n=>`
+        <div class="notification-item">
+            <strong>${escapeHTML(n.title)}</strong>
+            <p>${escapeHTML(n.description)}</p>
+            <small>${escapeHTML(n.time)}</small>
+        </div>
+    `).join("");
+}
+
+function openNotifications(){
+    renderNotifications();
+    openModal("notificationsModal");
+}
+
+function clearNotifications(){
+
+    notifications = [];
+
+    saveLocalState();
+    renderNotifications();
+}
+
+
+/* =========================================================
+   RECENT TRANSACTIONS
+   ========================================================= */
+
+function renderRecentTransactions(){
+
+    const container = $("recentTransactions");
+
+    if(!container){
+        return;
+    }
+
+    if(!localHistory.length){
+        container.innerHTML =
+            '<div class="empty-state">No recent transactions</div>';
+        return;
+    }
+
+    const list =
+        localHistory.slice(0,5);
+
+    container.innerHTML = list.map((tx,index)=>{
+
+        const isCredit =
+            tx.direction === "credit" ||
+            tx.type === "credit" ||
+            tx.type === "receive" ||
+            tx.type === "add_money";
+
+        const amount =
+            Number(tx.amount) || 0;
+
+        return `
+            <button
+                class="transaction-row"
+                type="button"
+                data-local-tx="${index}"
+                style="width:100%;text-align:left;background:white"
+            >
+                <div class="tx-icon">
+                    ${isCredit ? "↓" : "↑"}
+                </div>
+
+                <div class="tx-info">
+                    <strong>
+                        ${escapeHTML(tx.title || tx.type || "Transaction")}
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(tx.description || tx.date || "")}
+                    </small>
+                </div>
+
+                <div class="tx-amount ${isCredit ? "credit" : "debit"}">
+                    ${isCredit ? "+" : "-"}${money(amount)}
+                </div>
+            </button>
+        `;
+    }).join("");
+
+    container.querySelectorAll("[data-local-tx]")
+        .forEach(button=>{
+            button.addEventListener("click",()=>{
+                const index =
+                    Number(button.dataset.localTx);
+
+                if(localHistory[index]){
+                    showTransactionDetails(
+                        localHistory[index]
+                    );
+                }
+            });
+        });
+}
+
+
+/* =========================================================
+   TRANSACTION LOCAL STORAGE
+   ========================================================= */
+
+function addLocalTransaction(data){
+
+    localHistory.unshift({
+        id:data.id || Date.now(),
+        type:data.type || "transaction",
+        title:data.title || "Transaction",
+        description:data.description || "",
+        amount:Number(data.amount) || 0,
+        direction:data.direction || "debit",
+        status:data.status || "successful",
+        date:data.date || nowText(),
+        account:data.account || ""
+    });
+
+    if(localHistory.length > 100){
+        localHistory =
+            localHistory.slice(0,100);
+    }
+
+    saveLocalState();
+
+    renderRecentTransactions();
+}
+
+
+/* =========================================================
+   SEND
+   ========================================================= */
+
+function openSend(){
+
+    $("sendAccount").value = "";
+    $("sendAmount").value = "";
+    $("sendDescription").value = "";
+
+    openModal("sendModal");
+}
+
+function continueSend(){
+
+    const account =
+        $("sendAccount").value.trim();
+
+    const amount =
+        Number($("sendAmount").value);
+
+    const description =
+        $("sendDescription").value.trim() ||
+        "Money transfer";
+
+    if(!account){
+        alert("Please enter the recipient account number.");
+        return;
+    }
+
+    if(!amount || amount <= 0){
+        alert("Please enter a valid amount.");
+        return;
+    }
+
+    if(amount > balance){
+        alert("Insufficient balance.");
+        return;
+    }
+
+    pendingSend = {
+        account:account,
+        amount:amount,
+        description:description
+    };
+
+    $("confirmAccount").textContent = account;
+    $("confirmAmount").textContent = money(amount);
+    $("confirmDescription").textContent = description;
+
+    openModal("sendConfirmModal");
+}
+
+function requestSendPin(){
+
+    if(!pendingSend){
+        return;
+    }
+
+    pinAction = "send";
+    pinValue = "";
+    updatePinDots();
+
+    openModal("pinModal");
+}
+
+async function processSend(){
+
+    if(!pendingSend){
+        return;
+    }
+
+    const amount = Number(pendingSend.amount);
+
+    if(amount > balance){
+        alert("Insufficient balance.");
+        closeModal("pinModal");
+        return;
+    }
+
+    let serverSuccess = false;
+
+    try{
+
+        if(zodSupabase){
+
+            const {
+                data,
+                error
+            } = await zodSupabase.rpc(
+                "send_money_server",
+                {
+                    p_recipient_account:
+                        pendingSend.account,
+
+                    p_amount:
+                        amount,
+
+                    p_description:
+                        pendingSend.description
+                }
+            );
+
+            if(!error){
+                serverSuccess = true;
+            }else{
+                console.log(
+                    "send_money_server:",
+                    error
+                );
+            }
+        }
+
+    }catch(error){
+        console.log(error);
+    }
+
+    if(!serverSuccess){
+
+        balance -= amount;
+
+        addLocalTransaction({
+            type:"send",
+            title:"Money Sent",
+            description:
+                "To " + pendingSend.account,
+            amount:amount,
+            direction:"debit",
+            status:"successful",
+            account:pendingSend.account
+        });
+    }else{
+        balance -= amount;
+
+        addLocalTransaction({
+            type:"send",
+            title:"Money Sent",
+            description:
+                "To " + pendingSend.account,
+            amount:amount,
+            direction:"debit",
+            status:"successful",
+            account:pendingSend.account
+        });
+    }
+
+    saveLocalState();
+    renderBalance();
+
+    addNotification(
+        "Money sent",
+        money(amount) +
+        " sent to account " +
+        pendingSend.account
+    );
+
+    pendingSend = null;
+    closeAllModals();
+
+    alert("Transfer successful.");
+}
+
+
+/* =========================================================
+   RECEIVE
+   ========================================================= */
+
+function openReceive(){
+
+    renderProfile();
+
+    openModal("receiveModal");
+}
+
+async function copyAccount(){
+
+    try{
+
+        await navigator.clipboard.writeText(
+            accountNumber
+        );
+
+        alert(
+            "Account number copied: " +
+            accountNumber
+        );
+
+    }catch(error){
+
+        alert(
+            "Your account number is " +
+            accountNumber
+        );
+    }
+}
+
+
+/* =========================================================
+   ADD MONEY
+   ========================================================= */
+
+function openAddMoney(){
+
+    $("addMoneyAmount").value = "";
+
+    openModal("addMoneyModal");
+}
+
+async function confirmAddMoney(){
+
+    const amount =
+        Number($("addMoneyAmount").value);
+
+    if(!amount || amount <= 0){
+        alert("Enter a valid amount.");
+        return;
+    }
+
+    let serverSuccess = false;
+
+    try{
+
+        if(zodSupabase){
+
+            const {
+                error
+            } = await zodSupabase.rpc(
+                "create_my_balance",
+                {
+                    p_amount:amount
+                }
+            );
+
+            if(!error){
+                serverSuccess = true;
+            }
+        }
+
+    }catch(error){
+        console.log(error);
+    }
+
+    balance += amount;
+
+    addLocalTransaction({
+        type:"add_money",
+        title:"Money Added",
+        description:"Wallet funding",
+        amount:amount,
+        direction:"credit",
+        status:"successful"
+    });
+
+    saveLocalState();
+    renderBalance();
+
+    addNotification(
+        "Money added",
+        money(amount) +
+        " was added to your wallet."
+    );
+
+    closeModal("addMoneyModal");
+
+    alert("Money added successfully.");
+}
+
+
+/* =========================================================
+   WITHDRAW
+   ========================================================= */
+
+function openWithdraw(){
+
+    $("withdrawAccount").value = "";
+    $("withdrawAmount").value = "";
+
+    openModal("withdrawModal");
+}
+
+async function confirmWithdraw(){
+
+    const account =
+        $("withdrawAccount").value.trim();
+
+    const amount =
+        Number($("withdrawAmount").value);
+
+    if(!account){
+        alert("Enter the destination account.");
+        return;
+    }
+
+    if(!amount || amount <= 0){
+        alert("Enter a valid amount.");
+        return;
+    }
+
+    if(amount > balance){
+        alert("Insufficient balance.");
+        return;
+    }
+
+    try{
+
+        if(zodSupabase){
+
+            await zodSupabase.rpc(
+                "withdraw_money_server",
+                {
+                    p_amount:amount,
+                    p_account:account
+                }
+            );
+        }
+
+    }catch(error){
+        console.log(
+            "withdraw_money_server:",
+            error
+        );
+    }
+
+    balance -= amount;
+
+    addLocalTransaction({
+        type:"withdraw",
+        title:"Withdrawal",
+        description:
+            "To " + account,
+        amount:amount,
+        direction:"debit",
+        status:"successful",
+        account:account
+    });
+
+    saveLocalState();
+    renderBalance();
+
+    addNotification(
+        "Withdrawal completed",
+        money(amount) +
+        " withdrawn from your wallet."
+    );
+
+    closeModal("withdrawModal");
+
+    alert("Withdrawal successful.");
+}
+
+
+/* =========================================================
+   BILLS
+   ========================================================= */
+
+function openBill(type){
+
+    currentBillType = type;
+
+    $("billTitle").textContent =
+        "Pay " + type;
+
+    $("billCustomer").value = "";
+    $("billAmount").value = "";
+
+    openModal("billModal");
+}
+
+async function payBill(){
+
+    const customer =
+        $("billCustomer").value.trim();
+
+    const amount =
+        Number($("billAmount").value);
+
+    if(!customer){
+        alert("Enter the customer or phone number.");
+        return;
+    }
+
+    if(!amount || amount <= 0){
+        alert("Enter a valid amount.");
+        return;
+    }
+
+    if(amount > balance){
+        alert("Insufficient balance.");
+        return;
+    }
+
+    try{
+
+        if(zodSupabase){
+
+            await zodSupabase.rpc(
+                "pay_bill_server",
+                {
+                    p_bill_type:currentBillType,
+                    p_customer:customer,
+                    p_amount:amount
+                }
+            );
+        }
+
+    }catch(error){
+        console.log(
+            "pay_bill_server:",
+            error
+        );
+    }
+
+    balance -= amount;
+
+    addLocalTransaction({
+        type:"bill",
+        title:currentBillType + " Payment",
+        description:
+            customer,
+        amount:amount,
+        direction:"debit",
+        status:"successful"
+    });
+
+    saveLocalState();
+    renderBalance();
+
+    addNotification(
+        currentBillType + " payment",
+        money(amount) +
+        " bill payment completed."
+    );
+
+    closeModal("billModal");
+
+    alert(
+        currentBillType +
+        " payment successful."
+    );
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+function openHistory(){
+
+    renderHistory();
+
+    openModal("historyModal");
+}
+
+function renderHistory(){
+
+    const list = $("historyList");
+
+    if(!list){
+        return;
+    }
+
+    if(!localHistory.length){
+
+        list.innerHTML =
+            '<div class="empty-state">No transactions yet.</div>';
+
+        return;
+    }
+
+    list.innerHTML =
+        localHistory.map((tx,index)=>{
+
+            const credit =
+                tx.direction === "credit";
+
+            return `
+                <button
+                    type="button"
+                    class="transaction-row"
+                    data-history-index="${index}"
+                    style="width:100%;background:white;text-align:left"
+                >
+                    <div class="tx-icon">
+                        ${credit ? "↓" : "↑"}
+                    </div>
+
+                    <div class="tx-info">
+                        <strong>
+                            ${escapeHTML(tx.title)}
+                        </strong>
+
+                        <small>
+                            ${escapeHTML(tx.date)}
+                        </small>
+                    </div>
+
+                    <div class="tx-amount ${credit ? "credit" : "debit"}">
+                        ${credit ? "+" : "-"}${money(tx.amount)}
+                    </div>
+                </button>
+            `;
+        }).join("");
+
+    list.querySelectorAll("[data-history-index]")
+        .forEach(button=>{
+            button.addEventListener("click",()=>{
+                const index =
+                    Number(button.dataset.historyIndex);
+
+                showTransactionDetails(
+                    localHistory[index]
+                );
+            });
+        });
+}
+
+function showTransactionDetails(tx){
+
+    if(!tx){
+        return;
+    }
+
+    currentTransaction = tx;
+
+    $("transactionDetails").innerHTML = `
+        <div class="detail-row">
+            <span>Transaction</span>
+            <strong>${escapeHTML(tx.title)}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Amount</span>
+            <strong>${money(tx.amount)}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Status</span>
+            <strong style="color:#0b8a52">
+                ${escapeHTML(tx.status || "Successful")}
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Description</span>
+            <strong>${escapeHTML(tx.description || "—")}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Date</span>
+            <strong>${escapeHTML(tx.date || "—")}</strong>
+        </div>
+
+        ${
+            tx.account
+            ? `
+            <div class="detail-row">
+                <span>Account</span>
+                <strong>${escapeHTML(tx.account)}</strong>
+            </div>
+            `
+            : ""
+        }
+    `;
+
+    openModal("transactionDetailsModal");
+}
+
+function showReceipt(){
+
+    if(!currentTransaction){
+        return;
+    }
+
+    const tx = currentTransaction;
+
+    $("receiptContent").innerHTML = `
+        <div class="receipt-logo">
+            ZOD Pay
+        </div>
+
+        <div class="success">
+            ✓ TRANSACTION SUCCESSFUL
+        </div>
+
+        <div class="detail-row">
+            <span>Transaction</span>
+            <strong>${escapeHTML(tx.title)}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Amount</span>
+            <strong>${money(tx.amount)}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Description</span>
+            <strong>${escapeHTML(tx.description || "—")}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Date</span>
+            <strong>${escapeHTML(tx.date || "—")}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Status</span>
+            <strong style="color:#0b8a52">
+                Successful
+            </strong>
+        </div>
+
+        <div style="text-align:center;margin-top:18px;color:#8b94a1;font-size:9px">
+            Powered by ZOD Pay
+        </div>
+    `;
+
+    openModal("receiptModal");
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+function openProfile(){
+
+    renderProfile();
+    renderBalance();
+
+    openModal("profileModal");
+}
+
+function openSecurity(){
+
+    openModal("securityModal");
+}
+
+
+/* =========================================================
+   PIN
+   ========================================================= */
+
+function updatePinDots(){
+
+    document.querySelectorAll(".pin-dot")
+        .forEach((dot,index)=>{
+            dot.classList.toggle(
+                "active",
+                index < pinValue.length
+            );
+        });
+}
+
+function addPinNumber(number){
+
+    if(pinValue.length >= 4){
+        return;
+    }
+
+    pinValue += String(number);
+
+    $("pinInput").value = pinValue;
+
+    updatePinDots();
+}
+
+function clearPin(){
+
+    pinValue = "";
+
+    $("pinInput").value = "";
+
+    updatePinDots();
+}
+
+function backspacePin(){
+
+    pinValue =
+        pinValue.slice(0,-1);
+
+    $("pinInput").value = pinValue;
+
+    updatePinDots();
+}
+
+function submitPin(){
+
+    if(pinValue.length !== 4){
+        alert("Enter your 4-digit PIN.");
+        return;
+    }
+
+    const savedPin =
+        localStorage.getItem("zodTransactionPin");
+
+    if(pinAction === "send"){
+
+        if(savedPin && savedPin !== pinValue){
+
+            alert("Incorrect PIN.");
+
+            clearPin();
+
+            return;
+        }
+
+        closeModal("pinModal");
+
+        processSend();
+
+        clearPin();
+
+        return;
+    }
+
+    clearPin();
+}
+
+function openSetPin(){
+
+    $("newPin").value = "";
+    $("confirmNewPin").value = "";
+
+    openModal("setPinModal");
+}
+
+function savePin(){
+
+    const pin =
+        $("newPin").value.trim();
+
+    const confirm =
+        $("confirmNewPin").value.trim();
+
+    if(!/^\d{4}$/.test(pin)){
+        alert("PIN must contain exactly 4 digits.");
+        return;
+    }
+
+    if(pin !== confirm){
+        alert("PINs do not match.");
+        return;
+    }
+
+    localStorage.setItem(
+        "zodTransactionPin",
+        pin
+    );
+
+    closeModal("setPinModal");
+
+    addNotification(
+        "Security PIN updated",
+        "Your transaction PIN has been updated."
+    );
+
+    alert("PIN saved successfully.");
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+function openLogout(){
+
+    openModal("logoutModal");
+}
+
+async function confirmLogout(){
+
+    try{
+
+        if(zodSupabase){
+            await zodSupabase.auth.signOut();
+        }
+
+    }catch(error){
+        console.log(error);
+    }
+
+    localStorage.removeItem("zodLoggedIn");
+
+    /*
+      Keep wallet information locally so returning
+      to the application does not destroy the user's
+      current prototype data.
+    */
+
+    window.location.href = "login.html";
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function setActiveNav(id){
+
+    document.querySelectorAll(".nav-item")
+        .forEach(item=>{
+            item.classList.remove("active");
+        });
+
+    const active = $(id);
+
+    if(active){
+        active.classList.add("active");
+    }
+}
+
+function goHome(){
+
+    closeAllModals();
+
+    setActiveNav("homeNav");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+}
+
+function goToSend(){
+
+    setActiveNav("sendNav");
+
+    openSend();
+}
+
+function goToReceive(){
+
+    setActiveNav("receiveNav");
+
+    openReceive();
+}
+
+function goToTransactions(){
+
+    setActiveNav("historyNav");
+
+    openHistory();
+}
+
+function goToProfile(){
+
+    setActiveNav("profileNav");
+
+    openProfile();
+}
+
+
+/* =========================================================
+   SUPABASE PROFILE LOADING
+   ========================================================= */
+
+async function loadSupabaseProfile(){
+
+    if(!zodSupabase){
+        return;
+    }
+
+    try{
+
+        const {
+            data:{
+                user
+            }
+        } = await zodSupabase.auth.getUser();
+
+        if(!user){
+            return;
+        }
+
+        const {
+            data,
+            error
+        } = await zodSupabase
+            .from("profiles")
+            .select("*")
+            .eq("id",user.id)
+            .maybeSingle();
+
+        if(error){
+            console.log(
+                "Profile loading:",
+                error
+            );
+            return;
+        }
+
+        if(data){
+
+            if(data.full_name){
+                userName =
+                    data.full_name;
+            }else if(data.name){
+                userName =
+                    data.name;
+            }
+
+            if(data.account_number){
+                accountNumber =
+                    String(data.account_number);
+            }
+
+            if(data.balance !== null &&
+               data.balance !== undefined){
+
+                const serverBalance =
+                    Number(data.balance);
+
+                if(!Number.isNaN(serverBalance)){
+                    balance =
+                        serverBalance;
+                }
+            }
+
+            saveLocalState();
+
+            renderProfile();
+            renderBalance();
+        }
+
+        const email =
+            user.email || "";
+
+        if($("profileEmail")){
+            $("profileEmail").textContent =
+                email || "No email";
+        }
+
+        if($("profileEmailDetail")){
+            $("profileEmailDetail").textContent =
+                email || "—";
+        }
+
+    }catch(error){
+
+        console.log(
+            "Supabase profile error:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   LOAD TRANSACTIONS
+   ========================================================= */
+
+async function loadSupabaseTransactions(){
+
+    if(!zodSupabase){
+        return;
+    }
+
+    try{
+
+        const {
+            data:{
+                user
+            }
+        } = await zodSupabase.auth.getUser();
+
+        if(!user){
+            return;
+        }
+
+        const {
+            data,
+            error
+        } = await zodSupabase
+            .from("transactions")
+            .select("*")
+            .eq("user_id",user.id)
+            .order("created_at",{
+                ascending:false
+            })
+            .limit(50);
+
+        if(error){
+            console.log(
+                "Transactions:",
+                error
+            );
+            return;
+        }
+
+        if(!data || !data.length){
+            return;
+        }
+
+        localHistory =
+            data.map(tx=>{
+
+                const amount =
+                    Number(
+                        tx.amount ||
+                        tx.value ||
+                        0
+                    );
+
+                const type =
+                    String(
+                        tx.type ||
+                        "transaction"
+                    ).toLowerCase();
+
+                const credit =
+                    type.includes("receive") ||
+                    type.includes("deposit") ||
+                    type.includes("credit") ||
+                    type.includes("add");
+
+                return {
+                    id:tx.id,
+                    type:type,
+                    title:
+                        tx.title ||
+                        tx.type ||
+                        "Transaction",
+                    description:
+                        tx.description ||
+                        tx.details ||
+                        "",
+                    amount:amount,
+                    direction:
+                        credit
+                            ? "credit"
+                            : "debit",
+                    status:
+                        tx.status ||
+                        "successful",
+                    date:
+                        tx.created_at
+                            ? new Date(
+                                tx.created_at
+                              ).toLocaleString(
+                                "en-NG"
+                              )
+                            : nowText(),
+                    account:
+                        tx.account_number ||
+                        tx.account ||
+                        ""
+                };
+            });
+
+        saveLocalState();
+
+        renderRecentTransactions();
+
+    }catch(error){
+
+        console.log(
+            "Transaction load error:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   BUTTON BINDING
+   ========================================================= */
+
+function bindButtons(){
+
+    safeOn(
+        "toggleBalance",
+        "click",
+        toggleBalance
+    );
+
+    safeOn(
+        "notificationButton",
+        "click",
+        openNotifications
+    );
+
+    safeOn(
+        "profileHeaderButton",
+        "click",
+        goToProfile
+    );
+
+    safeOn(
+        "sendButton",
+        "click",
+        openSend
+    );
+
+    safeOn(
+        "receiveButton",
+        "click",
+        openReceive
+    );
+
+    safeOn(
+        "addMoneyButton",
+        "click",
+        openAddMoney
+    );
+
+    safeOn(
+        "withdrawButton",
+        "click",
+        openWithdraw
+    );
+
+    safeOn(
+        "quickHistoryButton",
+        "click",
+        goToTransactions
+    );
+
+    safeOn(
+        "quickProfileButton",
+        "click",
+        goToProfile
+    );
+
+    safeOn(
+        "quickSecurityButton",
+        "click",
+        openSecurity
+    );
+
+    safeOn(
+        "quickReceiveButton",
+        "click",
+        goToReceive
+    );
+
+    safeOn(
+        "quickBillsButton",
+        "click",
+        ()=>{
+            document
+                .querySelector('[data-bill="Airtime"]')
+                ?.scrollIntoView({
+                    behavior:"smooth"
+                });
+        }
+    );
+
+    safeOn(
+        "historyButton",
+        "click",
+        goToTransactions
+    );
+
+    safeOn(
+        "homeNav",
+        "click",
+        goHome
+    );
+
+    safeOn(
+        "sendNav",
+        "click",
+        goToSend
+    );
+
+    safeOn(
+        "receiveNav",
+        "click",
+        goToReceive
+    );
+
+    safeOn(
+        "historyNav",
+        "click",
+        goToTransactions
+    );
+
+    safeOn(
+        "profileNav",
+        "click",
+        goToProfile
+    );
+
+    safeOn(
+        "continueSendButton",
+        "click",
+        continueSend
+    );
+
+    safeOn(
+        "confirmSendButton",
+        "click",
+        requestSendPin
+    );
+
+    safeOn(
+        "submitPinButton",
+        "click",
+        submitPin
+    );
+
+    safeOn(
+        "copyAccountButton",
+        "click",
+        copyAccount
+    );
+
+    safeOn(
+        "confirmAddMoneyButton",
+        "click",
+        confirmAddMoney
+    );
+
+    safeOn(
+        "confirmWithdrawButton",
+        "click",
+        confirmWithdraw
+    );
+
+    safeOn(
+        "payBillButton",
+        "click",
+        payBill
+    );
+
+    safeOn(
+        "clearNotificationsButton",
+        "click",
+        clearNotifications
+    );
+
+    safeOn(
+        "viewReceiptButton",
+        "click",
+        showReceipt
+    );
+
+    safeOn(
+        "closeReceiptButton",
+        "click",
+        ()=>{
+            closeModal("receiptModal");
+        }
+    );
+
+    safeOn(
+        "profileSecurityButton",
+        "click",
+        openSecurity
+    );
+
+    safeOn(
+        "logoutButton",
+        "click",
+        openLogout
+    );
+
+    safeOn(
+        "securityLogoutButton",
+        "click",
+        openLogout
+    );
+
+    safeOn(
+        "changePinButton",
+        "click",
+        openSetPin
+    );
+
+    safeOn(
+        "setPinButton",
+        "click",
+        openSetPin
+    );
+
+    safeOn(
+        "savePinButton",
+        "click",
+        savePin
+    );
+
+    safeOn(
+        "confirmLogoutButton",
+        "click",
+        confirmLogout
+    );
+
+
+    /* CLOSE BUTTONS */
+
+    document.querySelectorAll(
+        "[data-close]"
+    ).forEach(button=>{
+
+        button.addEventListener(
+            "click",
+            ()=>{
+                closeModal(
+                    button.dataset.close
+                );
+            }
+        );
+
+    });
+
+
+    /* BILL BUTTONS */
+
+    document.querySelectorAll(
+        "[data-bill]"
+    ).forEach(button=>{
+
+        button.addEventListener(
+            "click",
+            ()=>{
+                openBill(
+                    button.dataset.bill
+                );
+            }
+        );
+
+    });
+
+
+    /* PIN KEYPAD */
+
+    document.querySelectorAll(
+        "[data-pin]"
+    ).forEach(button=>{
+
+        button.addEventListener(
+            "click",
+            ()=>{
+
+                const value =
+                    button.dataset.pin;
+
+                if(value === "clear"){
+                    clearPin();
+                    return;
+                }
+
+                if(value === "back"){
+                    backspacePin();
+                    return;
+                }
+
+                addPinNumber(value);
+            }
+        );
+
+    });
+
+
+    /* OUTSIDE MODAL CLICK */
+
+    document.querySelectorAll(
+        ".modal"
+    ).forEach(modal=>{
+
+        modal.addEventListener(
+            "click",
+            event=>{
+
+                if(event.target === modal){
+                    modal.classList.remove("show");
+                }
+
+            }
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   START APP
+   ========================================================= */
+
+async function startZODPay(){
+
+    renderProfile();
+    renderBalance();
+    renderNotifications();
+    renderRecentTransactions();
+
+    bindButtons();
+
+    /*
+      Bind buttons BEFORE remote requests.
+      This prevents a Supabase problem from making
+      the dashboard appear frozen.
+    */
+
+    await loadSupabaseProfile();
+
+    await loadSupabaseTransactions();
+
+    renderProfile();
+    renderBalance();
+    renderNotifications();
+    renderRecentTransactions();
+}
+
+
+/* =========================================================
+   GLOBAL ERROR PROTECTION
+   ========================================================= */
+
+window.addEventListener(
+    "error",
+    event=>{
+        console.error(
+            "ZOD Pay error:",
+            event.error || event.message
+        );
+    }
+);
+
+window.addEventListener(
+    "unhandledrejection",
+    event=>{
+        console.error(
+            "ZOD Pay promise error:",
+            event.reason
+        );
+    }
+);
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+if(document.readyState === "loading"){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        startZODPay,
+        {once:true}
+    );
+
+}else{
+
+    startZODPay();
+
+}
+</script>
+
+</body>
+</html> 
